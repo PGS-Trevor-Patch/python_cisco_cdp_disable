@@ -48,7 +48,6 @@ def NXOS_CDP_DISABLE(user,pwd):
             VENDOR = row['DEVICE_VENDOR']
             FAMILY = row['DEVICE_FAMILY']
             
-            #LOGIN
             if VENDOR == "cisco" and FAMILY == "nxos":  
                 net_connect = ConnectHandler(
                     device_type="cisco_nxos",
@@ -74,7 +73,6 @@ def IOS_CDP_DISABLE(user,pwd):
             VENDOR = row['DEVICE_VENDOR']
             FAMILY = row['DEVICE_FAMILY']
             
-            #LOGIN
             if VENDOR == "cisco" and FAMILY == "ios":  
                 net_connect = ConnectHandler(
                     device_type="cisco_ios",
