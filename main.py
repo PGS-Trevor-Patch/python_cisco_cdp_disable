@@ -21,8 +21,7 @@ def ACI_CDP_DISABLE(user,pwd):
             IP = row['DEVICE_IP']
             VENDOR = row['DEVICE_VENDOR']
             FAMILY = row['DEVICE_FAMILY']
-            
-            
+             
             if VENDOR == "cisco" and FAMILY == "aci":
                 #LOGIN
                 AUTH_URL = 'https://' + IP + '/api/aaaLogin.json'
