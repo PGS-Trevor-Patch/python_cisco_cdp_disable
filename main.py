@@ -13,7 +13,7 @@ import getpass
 from netmiko import ConnectHandler
 
 def ACI_CDP_DISABLE(user,pwd):
-    with open('csv_files/inventory.csv') as csv_file:
+    with open('inventory.csv') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -22,8 +22,9 @@ def ACI_CDP_DISABLE(user,pwd):
             VENDOR = row['DEVICE_VENDOR']
             FAMILY = row['DEVICE_FAMILY']
             
-            #LOGIN
+            
             if VENDOR == "cisco" and FAMILY == "aci":
+                #LOGIN
                 AUTH_URL = 'https://' + IP + '/api/aaaLogin.json'
                 AUTH_PAYLOAD = {"aaaUser":{"attributes":{"name":user,"pwd":pwd}}}
                 AUTH_CALL = requests.post(url=AUTH_URL, json=AUTH_PAYLOAD, verify=False )
@@ -34,12 +35,41 @@ def ACI_CDP_DISABLE(user,pwd):
                     return HEADERS
                 else:
                     print("The APIC, " + NAME + ", responded with the status code of " + str(AUTH_CALL.status_code) + ".")
-                    
-            #LEAF ACCESS POLICIES
-            
+                #LEAF ACCESS POLICIES
+                GET_URL = 'https://' + IP + '/api/node/mo/uni/infra/funcprof.json?query-target=subtree&target-subtree-class=infraAccPortGrp'
+                GET_CALL = requests.get(url=GET_URL, headers=HEADERS, verify=False)
+                if GET_CALL.status_code == 200:
+                    JSON_DATA = GET_CALL.json()
+                    OBJECT_LIST = JSON_DATA["imdata"]
+                    OBJECT_COUNT = 0
+                    for OBJECT in OBJECT_LIST:
+                        INFRA_ACC_PORT_GRP = JSON_DATA["imdata"][OBJECT_COUNT]["infraAccPortGrp"]["attributes"]["name"]
+                        POST_URL = 'https://' + IP + '/api/node/mo/uni/infra/funcprof/accportgrp-' + INFRA_ACC_PORT_GRP + '/rscdpIfPol.json'
+                        POST_PAYLOAD = {"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":"CDP_DISABLE"},"children":[]}}
+                        POST_CALL = requests.post(url=POST_URL,json=POST_PAYLOAD,headers=HEADERS,verify=False)
+                        print("The APIC, " + NAME + ", responded to the POST with the status code of " + str(POST_CALL.status_code) + ".")
+                        OBJECT_COUNT += 1
+                else:
+                    print("The APIC, " + NAME + ", responded to the GET with the status code of " + str(GET_CALL.status_code) + ".")
+                #PC/VPC POLICIES
+                GET_URL = 'https://' + IP + '/api/node/mo/uni/infra/funcprof.json?query-target=subtree&target-subtree-class=infraAccBndlGrp'
+                GET_CALL = requests.get(url=GET_URL, headers=HEADERS, verify=False)
+                if GET_CALL.status_code == 200:
+                    JSON_DATA = GET_CALL.json()
+                    OBJECT_LIST = JSON_DATA["imdata"]
+                    OBJECT_COUNT = 0
+                    for OBJECT in OBJECT_LIST:
+                        INFRA_ACC_BNDL_GRP = JSON_DATA["imdata"][OBJECT_COUNT]["infraAccBndlGrp"]["attributes"]["name"]
+                        POST_URL = 'https://' + IP + '/api/node/mo/uni/infra/funcprof/accbundle-' + INFRA_ACC_BNDL_GRP + '/rscdpIfPol.json'
+                        POST_PAYLOAD = {"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":"CDP_DISABLE"},"children":[]}}
+                        POST_CALL = requests.post(url=POST_URL,json=POST_PAYLOAD,headers=HEADERS,verify=False)
+                        print("The APIC, " + NAME + ", responded to the POST with the status code of " + str(POST_CALL.status_code) + ".")
+                        OBJECT_COUNT += 1
+                else:
+                    print("The APIC, " + NAME + ", responded to the GET with the status code of " + str(GET_CALL.status_code) + ".")
             
 def NXOS_CDP_DISABLE(user,pwd): 
-    with open('csv_files/inventory.csv') as csv_file:
+    with open('inventory.csv') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -64,7 +94,7 @@ def NXOS_CDP_DISABLE(user,pwd):
                 net_connect.save_config()
                 
 def IOS_CDP_DISABLE(user,pwd): 
-    with open('csv_files/inventory.csv') as csv_file:
+    with open('inventory.csv') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
